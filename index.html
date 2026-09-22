@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sesión 9: Audio, Video, IFrames y Accesibilidad Multimedia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg:             #FFC820;
+    --dark:           #111827;
+    --muted:          #4b5563;
+    --card:           #ffffff;
+    --border:         rgba(17,24,39,.1);
+    --radius:         16px;
+    --shadow:         0 10px 30px rgba(17,24,39,.08);
+    --footer-h:       72px;
+    --header-deck-h:  56px;
+    --accent-blue:    #2563eb;
+    --accent-emerald: #059669;
+    --accent-amber:   #d97706;
+    --accent-purple:  #7c3aed;
+    --accent-rose:    #e11d48;
+  }
+  
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #f3f4f6; 
+    color: var(--dark);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* Barra superior para alternar entre las 2 Presentaciones */
+  .deck-switcher-bar {
+    height: var(--header-deck-h);
+    background: var(--dark);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    z-index: 50;
+  }
+  
+  .deck-title-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  .deck-title-tag span {
+    background: var(--bg);
+    color: var(--dark);
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 900;
+  }
+
+  .deck-tabs {
+    display: flex;
+    background: rgba(255,255,255,0.08);
+    padding: 4px;
+    border-radius: 100px;
+    gap: 4px;
+  }
+  .deck-tab-btn {
+    background: transparent;
+    color: rgba(255,255,255,0.7);
+    border: none;
+    padding: 6px 18px;
+    border-radius: 100px;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .deck-tab-btn:hover {
+    color: #fff;
+  }
+  .deck-tab-btn.active {
+    background: var(--bg);
+    color: var(--dark);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  /* Contenedor principal de diapositivas */
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px 30px;
+    position: relative;
+    height: calc(100vh - var(--header-deck-h) - var(--footer-h));
+  }
+
+  .deck-container {
+    display: none;
+    width: 100%;
+    max-width: 1400px;
+    height: 100%;
+  }
+  .deck-container.active-deck {
+    display: flex;
+  }
+
+  .slide {
+    background: var(--card);
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 40px 60px;
+    display: none;
+    flex-direction: column;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    display: flex;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .eyebrow {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .eyebrow-badge {
+    background: var(--bg);
+    color: var(--dark);
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .badge-blue { background: rgba(37,99,235,0.12); color: var(--accent-blue); }
+  .badge-emerald { background: rgba(5,150,105,0.12); color: var(--accent-emerald); }
+  .badge-purple { background: rgba(124,58,237,0.12); color: var(--accent-purple); }
+  .badge-rose { background: rgba(225,29,72,0.12); color: var(--accent-rose); }
+  .badge-amber { background: rgba(217,119,6,0.12); color: var(--accent-amber); }
+  
+  .title-main {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -.03em;
+    margin-bottom: 16px;
+  }
+  .title-main em {
+    color: var(--bg);
+    font-style: normal;
+    text-shadow: 2px 2px 0 var(--dark);
+  }
+
+  .title-slide {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 4px solid var(--bg);
+    display: inline-block;
+  }
+
+  .subtitle {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 22px;
+    line-height: 1.4;
+  }
+
+  .teacher-card {
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #f9fafb;
+    padding: 14px 24px;
+    border-radius: 12px;
+    border-left: 6px solid var(--dark);
+    width: fit-content;
+  }
+  .teacher-info p {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .teacher-info h3 {
+    font-size: 18px;
+    font-weight: 800;
+  }
+
+  .two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+    align-items: stretch;
+  }
+
+  .agenda-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .agenda-item {
+    background: #f9fafb;
+    padding: 20px 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .agenda-item:hover { transform: translateX(6px); border-color: var(--bg); }
+  .agenda-num {
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--bg);
+    -webkit-text-stroke: 1px var(--dark);
+    line-height: 1;
+  }
+  .agenda-text { font-size: 17px; font-weight: 700; line-height: 1.3; }
+
+  .info-card {
+    background: #f9fafb;
+    padding: 22px;
+    border-radius: 12px;
+    border-top: 5px solid var(--dark);
+    display: flex;
+    flex-direction: column;
+  }
+  .info-card h4 { font-size: 19px; font-weight: 800; margin-bottom: 8px; color: var(--dark); }
+  .info-card p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+  
+  .code-snip {
+    background: var(--dark);
+    color: #e5e7eb;
+    padding: 16px 20px;
+    border-radius: 10px;
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .c-tag { color: #60a5fa; font-weight: 600; }
+  .c-attr { color: #facc15; }
+  .c-str { color: #34d399; }
+  .c-com { color: #9ca3af; font-style: italic; }
+
+  .table-custom {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .table-custom th {
+    background: var(--dark);
+    color: #fff;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .table-custom td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-custom tr:nth-child(even) { background: rgba(17,24,39,0.02); }
+
+  .badge-pill {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11.5px;
+    display: inline-block;
+  }
+  .pill-green { background: #d1fae5; color: #065f46; }
+  .pill-yellow { background: #fef3c7; color: #92400e; }
+  .pill-red { background: #fee2e2; color: #991b1b; }
+  .pill-blue { background: #dbeafe; color: #1e40af; }
+
+  /* Vista previa interactiva simulada */
+  .preview-box {
+    border: 2px dashed rgba(17,24,39,0.25);
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mock-player {
+    background: var(--dark);
+    color: #fff;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .mock-screen {
+    height: 140px;
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    color: #9ca3af;
+    font-size: 13px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .mock-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.06);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+  .mock-timeline {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 3px;
+    position: relative;
+  }
+  .mock-timeline-fill {
+    width: 45%;
+    height: 100%;
+    background: var(--bg);
+    border-radius: 3px;
+  }
+
+  .workshop-container {
+    background: var(--dark);
+    color: white;
+    border-radius: 16px;
+    padding: 26px 32px;
+    display: flex;
+    gap: 26px;
+    flex: 1;
+    overflow-y: auto;
+  }
+  .ws-steps { flex: 1.2; display: flex; flex-direction: column; gap: 14px; }
+  .ws-step { display: flex; gap: 14px; align-items: flex-start; }
+  .ws-num { 
+    background: var(--bg); 
+    color: var(--dark); 
+    min-width: 28px; 
+    height: 28px; 
+    border-radius: 50%; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    font-weight: 900; 
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .ws-reqs { 
+    flex: 0.9; 
+    background: rgba(255,255,255,0.05); 
+    padding: 20px; 
+    border-radius: 12px; 
+    border: 1px solid rgba(255,255,255,0.1); 
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Slide centrado para despedida */
+  .center-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%;
+  }
+
+  /* Footer Navigation */
+  footer {
+    background: var(--dark);
+    color: #fff;
+    height: var(--footer-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    flex-shrink: 0;
+  }
+  
+  .footer-counter {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 270px;
+  }
+  .footer-counter b { color: var(--bg); font-size: 16px; }
+
+  .footer-controls {
+    display: flex;
+    gap: 14px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 9px 20px;
+    border-radius: 100px;
+    font-size: 13.5px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover:not(:disabled) {
+    background: var(--bg);
+    color: var(--dark);
+    border-color: var(--bg);
+  }
+  .nav-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+  .footer-logo {
+    width: 270px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+  }
+
+  @media (max-height: 820px) {
+    .slide { padding: 24px 38px; }
+    .title-main { font-size: 44px; }
+    .title-slide { font-size: 26px; margin-bottom: 12px; }
+    .subtitle { font-size: 15px; margin-bottom: 14px; }
+    .code-snip { font-size: 12px; padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="deck-switcher-bar">
+  <div class="deck-title-tag">
+    <span>SESIÓN 9</span>
+    <p id="deck-label-title">Presentación 1 · Teoría &amp; Fundamentos</p>
+  </div>
+
+  <div class="deck-tabs">
+    <button class="deck-tab-btn active" id="tab-p1" onclick="switchDeck('deck1')">
+      🎬 Pres. 1: Teoría &amp; Multimedia
+    </button>
+    <button class="deck-tab-btn" id="tab-p2" onclick="switchDeck('deck2')">
+      🛠️ Pres. 2: Laboratorio &amp; Integración
+    </button>
+  </div>
+
+  <div style="color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600;">
+    IDAT · Desarrollo Web 2026
+  </div>
+</header>
+
+<main id="presentation-container">
+
+  <!-- ========================================================= -->
+  <!-- PRESENTACIÓN 1: TEORÍA Y FUNDAMENTOS TÉCNICOS (9 SLIDES) -->
+  <!-- ========================================================= -->
+  <div class="deck-container active-deck" id="deck1">
+    
+    <!-- SLIDE 1.1: PORTADA TEORÍA -->
+    <div class="slide active">
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div class="eyebrow">
+          <span class="eyebrow-badge">Sesión 9 · Parte 1</span>
+          Semana 5 · Bloque 1 · HTML Avanzado &amp; Experiencia Multimedia
+        </div>
+        <h1 class="title-main">Audio, Video Nativo, <em>IFrames</em> y Accesibilidad</h1>
+        <p class="subtitle">Aprende a integrar reproductores de audio y video sin plugins externos, incrustar mapas y servicios como YouTube de forma segura y optimizada, y aplicar subtítulos con estándares de accesibilidad universal.</p>
+        
+        <div class="teacher-card">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px;">JC</div>
+          <div class="teacher-info">
+            <p>Docente a cargo</p>
+            <h3>Ing. Jhon Chavez</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.2: AGENDA TEORÍA -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge">Plan de la Clase</span> 60 Minutos de Teoría</div>
+      <h2 class="title-slide">Ejes de la Masterclass Multimedia</h2>
+      <p class="subtitle">Cuatro pilares para enriquecer sitios web con contenido audiovisual moderno y accesible.</p>
+      
+      <div class="agenda-grid">
+        <div class="agenda-item">
+          <div class="agenda-num">1</div>
+          <div class="agenda-text">Video y Audio Nativo HTML5<br><span style="font-size:13px; color:var(--muted); font-weight:500;">Etiquetas <code>&lt;video&gt;</code> y <code>&lt;audio&gt;</code>, controles y atributos clave.</span></div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">2</div>
+          <div class="agenda-text">Estrategia de Múltiples Fuentes<br><span style="font-size:13px; color:var(--muted); font-weight:500;">Etiqueta <code>&lt;source&gt;</code>, codecs web (MP4, WebM, MP3, OGG) y fallbacks.</span></div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-num">3</div>
+          <div class="agenda-text">IFrames e Incrustación Externa<br><span style="font-size:13px; color:var(--muted); font-weight:500;">Google Maps, YouTube, <code>loading="lazy"</code> y atributos de seguridad.</span></div>
+        </div>
+        <div class="agenda-item" style="border-color: var(--bg); background: rgba(255,200,32,0.08);">
+          <div class="agenda-num">4</div>
+          <div class="agenda-text">Accesibilidad Multimedia (WCAG)<br><span style="font-size:13px; color:var(--dark); font-weight:600;">Subtítulos con <code>&lt;track&gt;</code>, formato WebVTT y atributo <code>title</code> en marcos.</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.3: TEMA 1 - VIDEO Y AUDIO NATIVOS -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-blue">Pilar 1</span> Reproducción Nativa en HTML5</div>
+      <h2 class="title-slide">Audio y Video: La Desaparición de Plugins</h2>
+      <p class="subtitle">Antes de HTML5 se requería Adobe Flash o reproductores externos. Hoy el propio navegador reproduce multimedia de forma nativa y eficiente.</p>
+      
+      <div class="two-cols">
+        <div class="info-card" style="border-top-color: var(--accent-blue);">
+          <h4>Atributos Booleanos y de Control</h4>
+          <p style="margin-bottom:10px;">Controlan la experiencia del usuario y la carga de datos del navegador:</p>
+          <ul style="font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:8px; list-style:none;">
+            <li><b>controls:</b> Muestra la barra nativa (reproducir, pausa, volumen, pantalla completa). <em>¡Obligatorio para el usuario!</em></li>
+            <li><b>autoplay:</b> Inicia la reproducción de inmediato. (Los navegadores lo bloquean a menos que tenga <code>muted</code>).</li>
+            <li><b>muted:</b> Inicia el medio en silencio. Requisito para autoplay en móviles y desktop.</li>
+            <li><b>loop:</b> Reinicia la reproducción en bucle continuo al terminar.</li>
+            <li><b>poster:</b> Imagen previa que se ve antes de darle play al video.</li>
+            <li><b>preload="none | metadata | auto":</b> Cuánto archivo descarga antes del clic.</li>
+          </ul>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-amber);">
+          <h4>Formatos Recomendados</h4>
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Elemento</th>
+                <th>Formato Principal</th>
+                <th>Compatibilidad</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>&lt;video&gt;</b></td>
+                <td>MP4 (H.264) / WebM</td>
+                <td><span class="badge-pill pill-green">&gt;99% Navegadores</span></td>
+              </tr>
+              <tr>
+                <td><b>&lt;audio&gt;</b></td>
+                <td>MP3 / OGG / AAC</td>
+                <td><span class="badge-pill pill-green">&gt;99% Navegadores</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="background:rgba(217,119,6,0.08); padding:12px; border-radius:8px; border-left:4px solid var(--accent-amber); margin-top:14px; font-size:12.5px; color:#78350f;">
+            💡 <b>Buenas prácticas:</b> Siempre declara <code>width</code> y <code>height</code> en el elemento <code>&lt;video&gt;</code> para evitar saltos de diseño (CLS).
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.4: EJEMPLO 1 - VIDEO Y AUDIO CON MÚLTIPLES SOURCES -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-emerald">Ejemplo 1</span> Código HTML Puro</div>
+      <h2 class="title-slide">Sintaxis con Múltiples Fuentes y Respaldo</h2>
+      <p class="subtitle">Usar la etiqueta <code>&lt;source&gt;</code> permite al navegador seleccionar el formato más eficiente y muestra un texto de respaldo si el medio no se soporta.</p>
+      
+      <div class="two-cols">
+        <div>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-com">&lt;!-- Video con poster, controles y dimensiones --&gt;</span>
+<span class="c-tag">&lt;video</span> <span class="c-attr">controls</span> 
+       <span class="c-attr">poster</span>=<span class="c-str">"assets/img/portada-video.webp"</span>
+       <span class="c-attr">width</span>=<span class="c-str">"640"</span> 
+       <span class="c-attr">height</span>=<span class="c-str">"360"</span> 
+       <span class="c-attr">preload</span>=<span class="c-str">"metadata"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"assets/media/proceso-cafe.webm"</span> <span class="c-attr">type</span>=<span class="c-str">"video/webm"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"assets/media/proceso-cafe.mp4"</span> <span class="c-attr">type</span>=<span class="c-str">"video/mp4"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;p&gt;</span>Tu navegador no soporta video HTML5. 
+     <span class="c-tag">&lt;a</span> <span class="c-attr">href</span>=<span class="c-str">"assets/media/proceso-cafe.mp4"</span><span class="c-tag">&gt;</span>Descarga el video aquí<span class="c-tag">&lt;/a&gt;</span>.
+  <span class="c-tag">&lt;/p&gt;</span>
+<span class="c-tag">&lt;/video&gt;</span>
+
+<span class="c-com">&lt;!-- Audio para entrevista o podcast --&gt;</span>
+<span class="c-tag">&lt;audio</span> <span class="c-attr">controls</span> <span class="c-attr">preload</span>=<span class="c-str">"none"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"assets/media/podcast-origen.mp3"</span> <span class="c-attr">type</span>=<span class="c-str">"audio/mpeg"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"assets/media/podcast-origen.ogg"</span> <span class="c-attr">type</span>=<span class="c-str">"audio/ogg"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;p&gt;</span>Tu navegador no reproduce audio nativo.<span class="c-tag">&lt;/p&gt;</span>
+<span class="c-tag">&lt;/audio&gt;</span>
+          </div>
+        </div>
+
+        <div class="preview-box">
+          <h4 style="font-size:15px; font-weight:800;">Simulación del Reproductor Nativo:</h4>
+          
+          <div class="mock-player">
+            <div class="mock-screen">
+              <div style="font-size:28px;">🎬</div>
+              <b>assets/img/portada-video.webp (Poster)</b>
+              <span style="font-size:11px;">El navegador aún no descarga los 40 MB de video</span>
+            </div>
+            <div class="mock-controls">
+              <span>▶ Play</span>
+              <div class="mock-timeline"><div class="mock-timeline-fill"></div></div>
+              <span>01:24 / 03:10</span>
+              <span>🔊</span>
+              <span>⛶</span>
+            </div>
+          </div>
+
+          <div style="font-size:13px; color:var(--muted); line-height:1.5;">
+            <b>¿Por qué usar <code>preload="metadata"</code>?</b><br>
+            Solo descarga la duración del video y las dimensiones básicas, ahorrando hasta un 95% de datos al usuario antes de que decida ver el contenido.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.5: TEMA 2 - IFRAMES E INCRUSTACIÓN EXTERNA -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-purple">Pilar 2</span> Embebidos de Terceros</div>
+      <h2 class="title-slide">IFrames: Una Ventana a la Web Externa</h2>
+      <p class="subtitle">La etiqueta <code>&lt;iframe&gt;</code> (Inline Frame) permite incrustar otro documento HTML dentro de nuestra propia página.</p>
+      
+      <div class="two-cols">
+        <div class="info-card" style="border-top-color: var(--accent-purple);">
+          <h4>Casos de Uso Estratégicos</h4>
+          <p style="margin-bottom:10px;">Los servicios más comunes en páginas comerciales son:</p>
+          <ul style="font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:8px; list-style:none;">
+            <li>🗺️ <b>Google Maps:</b> Mostrar la ubicación física del local sin pagar una API compleja.</li>
+            <li>📺 <b>YouTube / Vimeo:</b> Alojar videos pesados en sus servidores y no sobrecargar el hosting propio.</li>
+            <li>📊 <b>Formularios y Gráficos:</b> Embeber encuestas de Typeform o reportes externos.</li>
+          </ul>
+          <div style="margin-top:14px; background:#f3f4f6; padding:12px; border-radius:8px;">
+            <b style="font-size:13px; color:var(--dark);">⚠️ Cuidado con la Velocidad:</b>
+            <p style="font-size:12.5px; color:var(--muted); margin-top:4px;">Un iframe de YouTube carga scripts pesados de Google. Es <b>imprescindible usar <code>loading="lazy"</code></b> para no retrasar la carga de la página.</p>
+          </div>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-rose);">
+          <h4>Atributos Obligatorios del IFrame</h4>
+          <div style="display:flex; flex-direction:column; gap:10px; font-size:13px; margin-top:6px;">
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>1. title (Obligatorio por Accesibilidad):</b><br>
+              Describe qué hay dentro del marco para los lectores de pantalla (ej: <code>title="Ubicación de Origen Café en Google Maps"</code>).
+            </div>
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>2. width y height:</b><br>
+              Define el tamaño del marco en píxeles.
+            </div>
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>3. loading="lazy":</b><br>
+              Pospone la carga del iframe hasta que el usuario se acerque con scroll.
+            </div>
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>4. allowfullscreen:</b><br>
+              Permite que el usuario expanda el video a pantalla completa.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.6: EJEMPLO 2 - CÓDIGO GOOGLE MAPS Y YOUTUBE -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-emerald">Ejemplo 2</span> Embebidos en Código Puro</div>
+      <h2 class="title-slide">Ejemplo: Google Maps &amp; YouTube en HTML Puro</h2>
+      <p class="subtitle">Estructura correcta de ambos embebidos con atributos de seguridad, rendimiento y accesibilidad.</p>
+      
+      <div class="two-cols">
+        <div>
+          <h4 style="font-size:15px; font-weight:800; margin-bottom:6px;">1. Mapa de Google (Página de Contacto):</h4>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-tag">&lt;iframe</span> 
+  <span class="c-attr">src</span>=<span class="c-str">"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3..."</span>
+  <span class="c-attr">title</span>=<span class="c-str">"Mapa de ubicación de la tostaduría en Miraflores"</span>
+  <span class="c-attr">width</span>=<span class="c-str">"600"</span> 
+  <span class="c-attr">height</span>=<span class="c-str">"350"</span> 
+  <span class="c-attr">loading</span>=<span class="c-str">"lazy"</span>
+  <span class="c-attr">referrerpolicy</span>=<span class="c-str">"no-referrer-when-downgrade"</span><span class="c-tag">&gt;</span>
+<span class="c-tag">&lt;/iframe&gt;</span>
+          </div>
+
+          <h4 style="font-size:15px; font-weight:800; margin-top:14px; margin-bottom:6px;">2. Video de YouTube (Sección Nosotros):</h4>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-tag">&lt;iframe</span> 
+  <span class="c-attr">src</span>=<span class="c-str">"https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ"</span>
+  <span class="c-attr">title</span>=<span class="c-str">"Video documental sobre los caficultores de Villa Rica"</span>
+  <span class="c-attr">width</span>=<span class="c-str">"560"</span> 
+  <span class="c-attr">height</span>=<span class="c-str">"315"</span> 
+  <span class="c-attr">loading</span>=<span class="c-str">"lazy"</span>
+  <span class="c-attr">allow</span>=<span class="c-str">"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"</span>
+  <span class="c-attr">allowfullscreen</span><span class="c-tag">&gt;</span>
+<span class="c-tag">&lt;/iframe&gt;</span>
+          </div>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-emerald);">
+          <h4>Secretos de Producción Web:</h4>
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+            <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+              <b style="color:var(--accent-emerald);">1. Privacidad Mejorada de YouTube:</b>
+              <p style="font-size:13px; color:var(--muted); margin-top:4px;">Usa el dominio <code>youtube-nocookie.com</code> en lugar de <code>youtube.com</code> para no rastrear cookies a tus usuarios antes de dar play.</p>
+            </div>
+            <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+              <b style="color:var(--accent-blue);">2. Atributo title jamás debe faltar:</b>
+              <p style="font-size:13px; color:var(--muted); margin-top:4px;">Si no pones <code>title</code>, el lector de pantalla dirá: <em>"Marco sin título"</em> o leerá la URL larguísima de Google, confundiendo al usuario.</p>
+            </div>
+            <div style="background:white; padding:12px; border-radius:8px; border:1px solid var(--border);">
+              <b style="color:var(--accent-amber);">3. Cierre obligatorio:</b>
+              <p style="font-size:13px; color:var(--muted); margin-top:4px;">A diferencia de <code>&lt;img&gt;</code>, la etiqueta <code>&lt;iframe&gt;</code> <b>siempre requiere su cierre <code>&lt;/iframe&gt;</code></b>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.7: TEMA 4 - ACCESIBILIDAD MULTIMEDIA (WCAG) -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-rose">Pilar 3 &amp; 4</span> Accesibilidad Web (WCAG 2.2)</div>
+      <h2 class="title-slide">Multimedia Inclusiva: Subtítulos y Transcripciones</h2>
+      <p class="subtitle">La web debe ser usable para personas con discapacidades auditivas, visuales y entornos con ruido o silencio obligatorio.</p>
+      
+      <div class="two-cols">
+        <div class="info-card" style="border-top-color: var(--accent-rose);">
+          <h4>La Etiqueta &lt;track&gt; y el Formato WebVTT</h4>
+          <p style="margin-bottom:10px;">La etiqueta <code>&lt;track&gt;</code> se coloca dentro de <code>&lt;video&gt;</code> o <code>&lt;audio&gt;</code> para cargar subtítulos sincronizados en archivos con extensión <code>.vtt</code> (Web Video Text Tracks).</p>
+          
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Atributo</th>
+                <th>Valor / Función</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>kind</b></td>
+                <td><code>subtitles</code>, <code>captions</code> (para personas sordas) o <code>descriptions</code>.</td>
+              </tr>
+              <tr>
+                <td><b>src</b></td>
+                <td>Ruta al archivo <code>assets/media/subtitulos.vtt</code>.</td>
+              </tr>
+              <tr>
+                <td><b>srclang</b></td>
+                <td>Código del idioma del subtítulo (ej: <code>es</code>, <code>en</code>).</td>
+              </tr>
+              <tr>
+                <td><b>label</b></td>
+                <td>Nombre visible en el menú del reproductor (ej: <code>"Español"</code>).</td>
+              </tr>
+              <tr>
+                <td><b>default</b></td>
+                <td>Indica cuál subtítulo se activa automáticamente.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--dark);">
+          <h4>¿Qué es una Transcripción Textual Adyacente?</h4>
+          <p style="font-size:13.5px; color:var(--muted); line-height:1.5;">
+            Si colocas un podcast de audio, las personas sordas no pueden escucharlo. Para cumplir los estándares internacionales, debes colocar un párrafo o bloque de texto adyacente con el resumen o transcripción de la conversación.
+          </p>
+          <div style="background:#f3f4f6; padding:14px; border-radius:8px; border-left:4px solid var(--dark); margin-top:12px;">
+            <b style="font-size:13px; color:var(--dark);">Regla de Oro de la Accesibilidad:</b>
+            <p style="font-size:12.5px; color:var(--muted); margin-top:4px;">
+              Todo contenido audiovisual transmitido mediante sonido o movimiento debe tener un <b>equivalente en texto</b> que pueda ser interpretado por lectores de pantalla o traducido a braille.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.8: EJEMPLO 3 - CASO COMPLETO CON TRACK Y VTT -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-emerald">Ejemplo 3</span> Caso Completo de Producción</div>
+      <h2 class="title-slide">Video Accesible con Subtítulos y Transcripción</h2>
+      <p class="subtitle">Estructura completa en HTML puro que cumple al 100% las directrices de accesibilidad web.</p>
+      
+      <div class="two-cols">
+        <div>
+          <h4 style="font-size:14px; font-weight:800; margin-bottom:4px;">1. Código HTML con &lt;track&gt;:</h4>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-tag">&lt;figure&gt;</span>
+  <span class="c-tag">&lt;video</span> <span class="c-attr">controls</span> 
+         <span class="c-attr">poster</span>=<span class="c-str">"assets/img/portada-tostado.webp"</span>
+         <span class="c-attr">width</span>=<span class="c-str">"600"</span> <span class="c-attr">height</span>=<span class="c-str">"340"</span><span class="c-tag">&gt;</span>
+    <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"assets/media/tostado.mp4"</span> <span class="c-attr">type</span>=<span class="c-str">"video/mp4"</span><span class="c-tag">&gt;</span>
+    
+    <span class="c-com">&lt;!-- Pista de subtítulos en español --&gt;</span>
+    <span class="c-tag">&lt;track</span> <span class="c-attr">kind</span>=<span class="c-str">"subtitles"</span> 
+           <span class="c-attr">src</span>=<span class="c-str">"assets/media/subtitulos-es.vtt"</span> 
+           <span class="c-attr">srclang</span>=<span class="c-str">"es"</span> 
+           <span class="c-attr">label</span>=<span class="c-str">"Español"</span> 
+           <span class="c-attr">default</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;/video&gt;</span>
+
+  <span class="c-tag">&lt;figcaption&gt;</span>
+    Demostración del tueste artesanal en nuestra tostaduría.
+  <span class="c-tag">&lt;/figcaption&gt;</span>
+<span class="c-tag">&lt;/figure&gt;</span>
+
+<span class="c-com">&lt;!-- Transcripción textual para soporte universal --&gt;</span>
+<span class="c-tag">&lt;p&gt;</span>
+  <span class="c-tag">&lt;strong&gt;</span>Resumen del video:<span class="c-tag">&lt;/strong&gt;</span> El maestro tostador 
+  explica cómo el grano alcanza el primer crack a 200°C, 
+  liberando notas a panela y frutos secos.
+<span class="c-tag">&lt;/p&gt;</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size:14px; font-weight:800; margin-bottom:4px;">2. Estructura del archivo "subtitulos-es.vtt":</h4>
+          <div class="code-snip" style="font-size:12px; background:#1e293b;">
+<span style="color:#facc15; font-weight:bold;">WEBVTT</span>
+
+<span style="color:#94a3b8;">1</span>
+00:00:01.000 --&gt; 00:00:04.500
+Bienvenidos al taller de tueste de Origen Café.
+
+<span style="color:#94a3b8;">2</span>
+00:00:05.000 --&gt; 00:00:09.200
+Aquí controlamos la temperatura grado a grado para resaltar el aroma.
+
+<span style="color:#94a3b8;">3</span>
+00:00:09.800 --&gt; 00:00:14.000
+El grano comienza a expandirse y desprender notas achocolatadas.
+          </div>
+          
+          <div style="margin-top:14px; padding:12px; background:#dcfce7; border-radius:8px; font-size:12.5px; color:#166534; border:1px solid #86efac;">
+            ✓ <b>Estandarización:</b> El formato WebVTT es texto plano y se puede redactar en el mismo VS Code. Comienza siempre con la palabra <b>WEBVTT</b> en mayúsculas en la primera línea.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1.9: CIERRE PRESENTACIÓN 1 (AGRADECIMIENTO) -->
+    <div class="slide">
+      <div class="center-content">
+        <div style="background: var(--bg); color:var(--dark); padding: 12px 28px; border-radius: 100px; font-weight:800; letter-spacing:.08em; margin-bottom:24px; font-size:13.5px;">
+          TEORÍA COMPLETADA · SESIÓN 9
+        </div>
+        <h2 style="font-size:56px; font-weight:900; letter-spacing:-.02em; margin-bottom:14px;">¡Muchas Gracias!</h2>
+        <p style="font-size:19px; color:var(--muted); font-weight:500; max-width:680px; line-height:1.45;">
+          ¿Dudas sobre controles multimedia, subtítulos WebVTT o seguridad en IFrames?
+        </p>
+        <p style="font-size:15px; color:var(--dark); font-weight:700; margin-top:16px;">
+          👉 Pasamos ahora a la <b>Presentación 2</b> para realizar el laboratorio guiado e integrar estos recursos en "Origen Café".
+        </p>
+        
+        <div style="margin-top:35px; width:70px; height:7px; background:var(--dark); border-radius:4px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- PRESENTACIÓN 2: LABORATORIO Y APLICACIÓN PRÁCTICA (8 SLIDES) -->
+  <!-- ========================================================= -->
+  <div class="deck-container" id="deck2">
+
+    <!-- SLIDE 2.1: PORTADA LABORATORIO -->
+    <div class="slide active">
+      <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div class="eyebrow">
+          <span class="eyebrow-badge badge-emerald">Sesión 9 · Parte 2</span>
+          Laboratorio Aplicado · 60 Minutos de Taller
+        </div>
+        <h1 class="title-main">Taller Multimedia: <em>Embebidos &amp; Video</em> en Origen Café</h1>
+        <p class="subtitle">Enriqueceremos las páginas <code>pages/contacto.html</code>, <code>nosotros.html</code> e <code>index.html</code> integrando el mapa interactivo de la tostaduría, un video del proceso de tueste con subtítulos y un podcast de caficultores.</p>
+        
+        <div class="teacher-card">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg); display:flex; align-items:center; justify-content:center; font-weight:900; font-size:18px;">JC</div>
+          <div class="teacher-info">
+            <p>Laboratorio Guiado</p>
+            <h3>Ing. Jhon Chavez</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.2: EL ESTADO ACTUAL DEL PROYECTO -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge">Contexto del Proyecto</span> Evolución de la Tostaduría</div>
+      <h2 class="title-slide">¿Dónde nos encontramos y qué integraremos hoy?</h2>
+      <p class="subtitle">En la Sesión 8 maquetamos el catálogo de productos con imágenes WebP. Hoy dotamos al sitio de contenido dinámico interactivo y sonoro.</p>
+      
+      <div class="two-cols">
+        <div class="info-card" style="border-top-color: var(--muted);">
+          <h4>✅ Lo que ya lograste (Sesiones 7 y 8)</h4>
+          <ul style="font-size:13.5px; color:var(--muted); display:flex; flex-direction:column; gap:10px; margin-top:8px; list-style:none;">
+            <li>📁 Estructura limpia de carpetas con <code>pages/</code> y <code>assets/img/</code>.</li>
+            <li>🔗 Enlaces relativos (<code>../</code>) operativos y probados sin errores 404.</li>
+            <li>🖼️ Imágenes en WebP/SVG con dimensiones fijas para evitar saltos CLS.</li>
+            <li>📦 Uso de <code>&lt;div&gt;</code> sin clases como agrupadores estructurales.</li>
+          </ul>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-emerald); background:rgba(5,150,105,0.03);">
+          <h4 style="color:var(--accent-emerald);">🎯 Reto de la Sesión 9 (Hoy)</h4>
+          <ul style="font-size:13.5px; color:var(--dark); display:flex; flex-direction:column; gap:10px; margin-top:8px; list-style:none;">
+            <li>📂 Crear la carpeta <code>assets/media/</code> para audios, videos cortos y subtítulos.</li>
+            <li>🗺️ Embeber el mapa de Google Maps en <code>pages/contacto.html</code> con <code>title</code> y <code>loading="lazy"</code>.</li>
+            <li>🎬 Añadir un video con <code>&lt;video controls poster="..."&gt;</code> y subtítulos <code>.vtt</code> en <code>pages/nosotros.html</code>.</li>
+            <li>🎙️ Incrustar un reproductor de audio <code>&lt;audio controls&gt;</code> con la historia de los productores.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.3: EJEMPLO LAB 1 - MAPA EN CONTACTO.HTML -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-blue">Ejemplo Lab 1</span> Embebido en Contacto</div>
+      <h2 class="title-slide">Integrando Google Maps en "pages/contacto.html"</h2>
+      <p class="subtitle">Estructura semántica para la sección de ubicación física del local sin usar clases CSS:</p>
+      
+      <div class="two-cols">
+        <div>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-tag">&lt;section&gt;</span>
+  <span class="c-tag">&lt;h2&gt;</span>Visita Nuestra Tostaduría y Cafetería<span class="c-tag">&lt;/h2&gt;</span>
+  <span class="c-tag">&lt;p&gt;</span>Nos ubicamos en Av. La Paz 450, Miraflores, Lima.<span class="c-tag">&lt;/p&gt;</span>
+
+  <span class="c-com">&lt;!-- DIV contenedor del mapa --&gt;</span>
+  <span class="c-tag">&lt;div&gt;</span>
+    <span class="c-tag">&lt;iframe</span> 
+      <span class="c-attr">src</span>=<span class="c-str">"https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3900.8!2d-77.02!3d-12.12..."</span>
+      <span class="c-attr">title</span>=<span class="c-str">"Ubicación en el mapa de Origen Café en Miraflores"</span>
+      <span class="c-attr">width</span>=<span class="c-str">"600"</span> 
+      <span class="c-attr">height</span>=<span class="c-str">"380"</span> 
+      <span class="c-attr">loading</span>=<span class="c-str">"lazy"</span>
+      <span class="c-attr">referrerpolicy</span>=<span class="c-str">"no-referrer-when-downgrade"</span><span class="c-tag">&gt;</span>
+    <span class="c-tag">&lt;/iframe&gt;</span>
+  <span class="c-tag">&lt;/div&gt;</span>
+
+  <span class="c-tag">&lt;p&gt;</span>
+    <span class="c-tag">&lt;strong&gt;</span>Horarios de atención:<span class="c-tag">&lt;/strong&gt;</span> Lunes a Sábado de 7:30 am a 9:00 pm.
+  <span class="c-tag">&lt;/p&gt;</span>
+<span class="c-tag">&lt;/section&gt;</span>
+          </div>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-blue);">
+          <h4>Checklist de Calidad del Mapa:</h4>
+          <ul style="font-size:13px; color:var(--muted); display:flex; flex-direction:column; gap:10px; margin-top:8px; list-style:none;">
+            <li>✓ <b>Atributo title descriptivo:</b> Evita que el lector de pantalla lea la URL interna cruda de Google Maps.</li>
+            <li>✓ <b>loading="lazy":</b> Garantiza que si el mapa está al pie de la página no consuma megas ni ralentice la carga inicial.</li>
+            <li>✓ <b>referrerpolicy:</b> Protege la privacidad del usuario al comunicarse con los servidores de mapas.</li>
+            <li>✓ <b>Cierre de etiqueta:</b> Siempre verifica tener <code>&lt;/iframe&gt;</code> al final.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.4: EJEMPLO LAB 2 - VIDEO CON SUBTÍTULOS EN NOSOTROS.HTML -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-purple">Ejemplo Lab 2</span> Multimedia en Nosotros</div>
+      <h2 class="title-slide">Video y Audio del Proceso en "pages/nosotros.html"</h2>
+      <p class="subtitle">Mostraremos a los caficultores de Villa Rica con video nativo y una pista de subtítulos en español:</p>
+      
+      <div class="two-cols">
+        <div>
+          <div class="code-snip" style="font-size:12px;">
+<span class="c-tag">&lt;section&gt;</span>
+  <span class="c-tag">&lt;h2&gt;</span>El Arte del Tueste Artesanal<span class="c-tag">&lt;/h2&gt;</span>
+
+  <span class="c-tag">&lt;div&gt;</span>
+    <span class="c-tag">&lt;video</span> <span class="c-attr">controls</span> 
+           <span class="c-attr">poster</span>=<span class="c-str">"../assets/img/portada-tostado.webp"</span>
+           <span class="c-attr">width</span>=<span class="c-str">"580"</span> <span class="c-attr">height</span>=<span class="c-str">"320"</span>
+           <span class="c-attr">preload</span>=<span class="c-str">"metadata"</span><span class="c-tag">&gt;</span>
+      <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"../assets/media/tostado.mp4"</span> <span class="c-attr">type</span>=<span class="c-str">"video/mp4"</span><span class="c-tag">&gt;</span>
+      <span class="c-tag">&lt;track</span> <span class="c-attr">kind</span>=<span class="c-str">"subtitles"</span> 
+             <span class="c-attr">src</span>=<span class="c-str">"../assets/media/subtitulos-es.vtt"</span> 
+             <span class="c-attr">srclang</span>=<span class="c-str">"es"</span> 
+             <span class="c-attr">label</span>=<span class="c-str">"Español"</span> 
+             <span class="c-attr">default</span><span class="c-tag">&gt;</span>
+      <span class="c-tag">&lt;p&gt;</span>Tu navegador no soporta video nativo.<span class="c-tag">&lt;/p&gt;</span>
+    <span class="c-tag">&lt;/video&gt;</span>
+  <span class="c-tag">&lt;/div&gt;</span>
+
+  <span class="c-tag">&lt;h3&gt;</span>Podcast: Voces de los Caficultores<span class="c-tag">&lt;/h3&gt;</span>
+  <span class="c-tag">&lt;audio</span> <span class="c-attr">controls</span> <span class="c-attr">preload</span>=<span class="c-str">"none"</span><span class="c-tag">&gt;</span>
+    <span class="c-tag">&lt;source</span> <span class="c-attr">src</span>=<span class="c-str">"../assets/media/entrevista-finca.mp3"</span> <span class="c-attr">type</span>=<span class="c-str">"audio/mpeg"</span><span class="c-tag">&gt;</span>
+  <span class="c-tag">&lt;/audio&gt;</span>
+<span class="c-tag">&lt;/section&gt;</span>
+          </div>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-purple);">
+          <h4>Atención a las Rutas Relativas:</h4>
+          <div style="background:rgba(37,99,235,0.08); padding:12px; border-radius:8px; border-left:4px solid var(--accent-blue); font-size:13px; margin-bottom:12px;">
+            <b><code>src="../assets/media/tostado.mp4"</code></b><br>
+            Como estamos dentro de <code>pages/nosotros.html</code>, el archivo multimedia se encuentra en otra carpeta hermana. Debemos <b>subir con <code>../</code></b> a la raíz y luego ingresar a <code>assets/media/</code>.
+          </div>
+          
+          <h4 style="font-size:15px; margin-top:6px;">Detalles de Rendimiento:</h4>
+          <p style="font-size:13px; color:var(--muted); line-height:1.5;">
+            • En el audio usamos <code>preload="none"</code> porque los podcasts pesan entre 5 MB y 20 MB; no queremos que el usuario los descargue si solo vino a leer nuestra historia.<br>
+            • En el video usamos <code>preload="metadata"</code> para obtener la duración sin descargar el peso total del archivo.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.5: ÁRBOL DE DIRECTORIOS ACTUALIZADO -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-amber">Arquitectura de Archivos</span> File Tree Sesión 9</div>
+      <h2 class="title-slide">Organización de la Carpeta "assets/media/"</h2>
+      <p class="subtitle">Estructura limpia que separa imágenes estáticas de los recursos audiovisuales pesados:</p>
+      
+      <div class="two-cols">
+        <div class="info-card" style="border-top-color: var(--dark);">
+          <h4>Árbol Oficial del Proyecto:</h4>
+          <div class="code-snip" style="font-size:12.5px;">
+📁 origen-cafe/
+├── 📄 index.html
+├── 📁 pages/
+│   ├── 📄 carta.html
+│   ├── 📄 nosotros.html         <span class="c-com">&lt;-- Video + Podcast</span>
+│   └── 📄 contacto.html         <span class="c-com">&lt;-- Mapa Google Maps</span>
+└── 📁 assets/
+    ├── 📁 img/                  <span class="c-com">&lt;-- WebP / SVG (Sesión 8)</span>
+    └── 📁 media/                <span class="c-com">&lt;-- ¡NUEVA CARPETA!</span>
+        ├── <span style="color:#60a5fa;">tostado.mp4</span>          <span class="c-com">&lt;-- Video optimizado</span>
+        ├── <span style="color:#34d399;">entrevista-finca.mp3</span> <span class="c-com">&lt;-- Audio podcast</span>
+        └── <span style="color:#facc15;">subtitulos-es.vtt</span>    <span class="c-com">&lt;-- Pista WebVTT</span>
+          </div>
+        </div>
+
+        <div class="info-card" style="border-top-color: var(--accent-amber);">
+          <h4>3 Mandamientos para Archivos Multimedia:</h4>
+          <div style="display:flex; flex-direction:column; gap:12px; font-size:13px; margin-top:8px;">
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>1. Peso máximo recomendado:</b><br>
+              Para videos que se alojen directamente en el hosting propio, procuren que no superen los 10 a 15 MB. Si son videos largos de 10 minutos, es preferible embeberlos mediante <b>YouTube / Vimeo</b>.
+            </div>
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>2. Nombres sin espacios ni caracteres raros:</b><br>
+              Usa <code>tostado.mp4</code> en lugar de <code>Video Tostado Final (1).MP4</code> para evitar errores de servidor.
+            </div>
+            <div style="padding:10px; background:white; border-radius:8px; border:1px solid var(--border);">
+              <b>3. Extensiones en minúsculas:</b><br>
+              Escribe <code>.vtt</code>, <code>.mp3</code> y <code>.mp4</code> siempre en minúscula estricta.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.6: GUÍA DE EJECUCIÓN (60 MINUTOS) -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge">Taller en Vivo</span> 60 Minutos de Código</div>
+      <h2 class="title-slide">Fases de Ejecución del Laboratorio</h2>
+      <p class="subtitle" style="font-size:16px; margin-bottom:14px;">Abre tu proyecto en VS Code y completa los 4 hitos secuenciales:</p>
+      
+      <div class="workshop-container">
+        <div class="ws-steps">
+          <h3 style="color:var(--bg); font-size:17px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:6px;">Ruta de Construcción</h3>
+          
+          <div class="ws-step">
+            <div class="ws-num">1</div>
+            <p style="font-size:13px;"><b>Crear Carpeta de Medios:</b> Dentro de <code>assets/</code> crea la subcarpeta <code>media/</code> y coloca los archivos de muestra provistos por el docente (o clips breves libres de derechos).</p>
+          </div>
+          <div class="ws-step">
+            <div class="ws-num">2</div>
+            <p style="font-size:13px;"><b>Incrustar Mapa en Contacto:</b> En <code>pages/contacto.html</code> abre Google Maps, busca una cafetería de referencia, obtén el código de inserción (Compartir &gt; Insertar mapa) y colócalo con <code>title</code> y <code>loading="lazy"</code>.</p>
+          </div>
+          <div class="ws-step">
+            <div class="ws-num">3</div>
+            <p style="font-size:13px;"><b>Video + Subtítulo VTT:</b> En <code>pages/nosotros.html</code> maqueta la etiqueta <code>&lt;video&gt;</code> con <code>controls</code>, <code>poster</code> y el archivo <code>subtitulos-es.vtt</code> redactado con al menos 3 marcas de tiempo.</p>
+          </div>
+          <div class="ws-step">
+            <div class="ws-num">4</div>
+            <p style="font-size:13px;"><b>Audio Podcast:</b> Añade la etiqueta <code>&lt;audio controls preload="none"&gt;</code> con un párrafo explicativo que sirva como transcripción del contenido.</p>
+          </div>
+        </div>
+
+        <div class="ws-reqs">
+          <h3 style="font-size:15px; color:#9ca3af;">Checklist de Aprobación</h3>
+          <div style="display:flex; flex-direction:column; gap:7px; font-size:12.5px;">
+            <div>☑️ Mapa interactivo visible en <code>contacto.html</code> sin desbordar.</div>
+            <div>☑️ Atributo <code>title</code> presente en el iframe del mapa.</div>
+            <div>☑️ Video reproducible con controles y poster visible antes del play.</div>
+            <div>☑️ Botón [CC] de subtítulos operativo en el reproductor de video.</div>
+            <div>☑️ Rutas relativas correctamente resueltas con <code>../assets/media/...</code></div>
+            <div>☑️ Cero clases CSS en el código HTML de práctica.</div>
+          </div>
+
+          <div style="margin-top:10px; background:rgba(255,200,32,0.15); border-left:4px solid var(--bg); padding:8px 12px; border-radius:6px; font-size:12px; color:#fef08a;">
+            💡 <b>Consejo:</b> Si tu video no muestra los subtítulos, comprueba que la primera línea de tu archivo <code>.vtt</code> contenga exactamente la palabra <b>WEBVTT</b>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.7: AUDITORÍA CRUZADA ENTRE COMPAÑEROS -->
+    <div class="slide">
+      <div class="eyebrow"><span class="eyebrow-badge badge-blue">Dinámica de Calidad</span> 10 Minutos</div>
+      <h2 class="title-slide">Pruebas Cruzadas: Auditoría Audiovisual</h2>
+      <p class="subtitle">Comprueba que el proyecto de tu compañero cumpla con los estándares técnicos y de accesibilidad.</p>
+      
+      <div class="two-cols" style="align-items:center;">
+        <div class="info-card" style="border-left:5px solid var(--accent-blue); border-top:none;">
+          <h4 style="color:var(--accent-blue);">Instrucciones para el Auditor</h4>
+          <ol style="margin-left:18px; font-size:14px; line-height:1.65; color:var(--muted); margin-top:8px;">
+            <li>Abre el proyecto de tu compañero mediante <b>Live Server</b>.</li>
+            <li>Navega a <b>Contacto</b> y arrastra el mapa con el cursor: Confirma que la interacción fluya y que tenga atributo <code>title</code>.</li>
+            <li>Ve a <b>Nosotros</b>: Dale Play al video y activa el botón de subtítulos [CC] para verificar que se lean en pantalla.</li>
+            <li>Reproduce el audio y comprueba que los controles nativos respondan al volumen y a la pausa.</li>
+          </ol>
+        </div>
+
+        <div style="background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:24px; text-align:center;">
+          <div style="font-size:44px; margin-bottom:8px;">🎉</div>
+          <h3 style="font-size:19px; font-weight:800; margin-bottom:6px;">Avance del Proyecto Parcial</h3>
+          <p style="font-size:14px; color:var(--muted); line-height:1.5;">
+            Tu sitio web ahora cuenta con navegación multi-página, catálogo de productos optimizado en WebP, ubicación interactiva y soporte multimedia inclusivo.
+          </p>
+          <div style="margin-top:14px; display:inline-block; background:var(--dark); color:var(--bg); padding:6px 14px; border-radius:20px; font-size:11.5px; font-weight:800;">
+            PROYECTO PARCIAL AL 75% DE AVANCE
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2.8: CIERRE PRESENTACIÓN 2 (AGRADECIMIENTO) -->
+    <div class="slide">
+      <div class="center-content">
+        <div style="background: var(--bg); color:var(--dark); padding: 12px 28px; border-radius: 100px; font-weight:800; letter-spacing:.08em; margin-bottom:24px; font-size:13.5px;">
+          FIN DE LA SESIÓN 9
+        </div>
+        <h2 style="font-size:56px; font-weight:900; letter-spacing:-.02em; margin-bottom:14px;">¡Muchas Gracias!</h2>
+        <p style="font-size:19px; color:var(--muted); font-weight:500; max-width:680px; line-height:1.45;">
+          ¡Excelente trabajo! Has aprendido a enriquecer tus páginas web con multimedia nativa, mapas externos y accesibilidad profesional en HTML puro.
+        </p>
+        <p style="font-size:15px; color:var(--dark); font-weight:700; margin-top:16px;">
+          👉 Próxima clase (Sesión 10): <b>Tablas de Datos y Arquitectura de Formularios HTML5</b>.
+        </p>
+        
+        <div style="margin-top:35px; width:70px; height:7px; background:var(--dark); border-radius:4px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-counter">
+    <span>Diapositiva</span> 
+    <b id="curr-num">1</b> / <span id="total-num">9</span>
+    <span style="margin-left: 10px; font-size: 11px; opacity: 0.6;" id="deck-indicator-text">(Pres. 1: Teoría)</span>
+  </div>
+  
+  <div class="footer-controls">
+    <button class="nav-btn" id="btn-prev" onclick="changeSlide(-1)">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Anterior
+    </button>
+    <button class="nav-btn" id="btn-next" onclick="changeSlide(1)">
+      Siguiente
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  
+  <div class="footer-logo">
+    IDAT · HTML &amp; CSS
+  </div>
+</footer>
+
+<script>
+  let activeDeckId = 'deck1';
+  let slideIndexMap = {
+    deck1: 0,
+    deck2: 0
+  };
+
+  const deckContainers = {
+    deck1: document.getElementById('deck1'),
+    deck2: document.getElementById('deck2')
+  };
+
+  const tabBtns = {
+    deck1: document.getElementById('tab-p1'),
+    deck2: document.getElementById('tab-p2')
+  };
+
+  const deckTitles = {
+    deck1: 'Presentación 1 · Teoría & Multimedia',
+    deck2: 'Presentación 2 · Laboratorio & Integración'
+  };
+
+  const deckIndicators = {
+    deck1: '(Pres. 1: Teoría)',
+    deck2: '(Pres. 2: Lab)'
+  };
+
+  const currNum = document.getElementById('curr-num');
+  const totalNum = document.getElementById('total-num');
+  const btnPrev = document.getElementById('btn-prev');
+  const btnNext = document.getElementById('btn-next');
+  const deckLabelTitle = document.getElementById('deck-label-title');
+  const deckIndicatorText = document.getElementById('deck-indicator-text');
+
+  function getSlidesForActiveDeck() {
+    return deckContainers[activeDeckId].querySelectorAll('.slide');
+  }
+
+  function updateDeckUI() {
+    const slides = getSlidesForActiveDeck();
+    const currentSlide = slideIndexMap[activeDeckId];
+
+    slides.forEach((slide, idx) => {
+      if (idx === currentSlide) {
+        slide.classList.add('active');
+      } else {
+        slide.classList.remove('active');
+      }
+    });
+
+    if (totalNum) totalNum.textContent = slides.length;
+    if (currNum) currNum.textContent = currentSlide + 1;
+    if (btnPrev) btnPrev.disabled = currentSlide === 0;
+    if (btnNext) btnNext.disabled = currentSlide === slides.length - 1;
+    if (deckLabelTitle) deckLabelTitle.textContent = deckTitles[activeDeckId];
+    if (deckIndicatorText) deckIndicatorText.textContent = deckIndicators[activeDeckId];
+  }
+
+  window.switchDeck = function(deckId) {
+    if (deckId === activeDeckId) return;
+    activeDeckId = deckId;
+
+    Object.keys(deckContainers).forEach(key => {
+      if (key === deckId) {
+        deckContainers[key].classList.add('active-deck');
+        tabBtns[key].classList.add('active');
+      } else {
+        deckContainers[key].classList.remove('active-deck');
+        tabBtns[key].classList.remove('active');
+      }
+    });
+
+    updateDeckUI();
+  };
+
+  window.changeSlide = function(direction) {
+    const slides = getSlidesForActiveDeck();
+    const currentSlide = slideIndexMap[activeDeckId];
+    const targetSlide = currentSlide + direction;
+
+    if (targetSlide >= 0 && targetSlide < slides.length) {
+      slideIndexMap[activeDeckId] = targetSlide;
+      updateDeckUI();
+    }
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'Space') {
+      window.changeSlide(1);
+    } else if (e.key === 'ArrowLeft') {
+      window.changeSlide(-1);
+    } else if (e.key === '1') {
+      window.switchDeck('deck1');
+    } else if (e.key === '2') {
+      window.switchDeck('deck2');
+    }
+  });
+
+  // Inicializar estado en pantalla
+  updateDeckUI();
+</script>
+
+</body>
+</html>
